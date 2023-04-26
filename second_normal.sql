@@ -1,42 +1,39 @@
 /* 2NF: In 1NF, no partial dependencies */
 
 -- TYPES
--- Put all types (type1 and 2) into one column so no repeating groups
-CREATE TABLE type_id (
+-- No repeating groups - put types in a separate table to remove many-to-many relationship.
+
+-- Create table with each pokemon's number and their corresponding types.
+CREATE TABLE pokenum_type as
+  select distinct pokedex_number, type1, type2
+  from firstnfpokedex;
+
+-- Separate unique type combos
+create table poke_types as
+select distinct type1, type2
+from pokenum_type;
+
+-- Create type table corresponding types to id #s
+CREATE TABLE types_ids (
  typeid integer primary key autoincrement,
- name VARCHAR DEFAULT NULL
+ name1 VARCHAR DEFAULT NULL,
+ name2 varchar default null
 );
+insert into types_ids (name1, name2)
+select * from poke_types;
 
-INSERT INTO type_id (name)
-SELECT DISTINCT type1 FROM imported_pokemon_data;
+-- Join tables so pokedex number has their type composite key.
+create table pokenum_id as
+select imported_pokemon_data.pokedex_number, types_ids.typeid
+from imported_pokemon_data, types_ids
+where types_ids.name1 = imported_pokemon_data.type1
+and types_ids.name2 = imported_pokemon_data.type2;
 
--- Create temp table to put all type1 and type2 attributes into one column
-CREATE TABLE temptype (
- pokedex_number INT,
- type VARCHAR DEFAULT NULL
-);
-
-INSERT INTO temptype
- SELECT pokedex_number, type1
- FROM imported_pokemon_data
- WHERE type1 != '';
-
- INSERT INTO temptype
-  SELECT pokedex_number, type2
-  FROM imported_pokemon_data
-  WHERE type2 != '';
-
--- Joining tables together to connect typeid and type name in table
-CREATE TABLE pokemon_types as
-  select temp.pokedex_number, type_id.typeid
-  from temptype as temp, type_id
-  where temp.type = type_id.name;
-
--- Dropping type columns from 2nf table, temp tables
-DROP TABLE temptype;
+-- Drop temp tables
+drop table pokenum_type;
+drop table poke_types;
 
 -- ABILITIES
-
 -- Separate out abilities into separate tables
 CREATE TABLE ability_id (
  abilityid integer primary key autoincrement,

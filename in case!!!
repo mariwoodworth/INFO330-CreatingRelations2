@@ -1,0 +1,30 @@
+-- coding from office hours!!! fix
+CREATE TABLE pokemon_typetest2 as
+  select distinct pokedex_number, type1, type2
+  from firstnfpokedex
+
+  create table pokemon_typetest3 as
+  select distinct type1, type2
+  from pokemon_typetest2
+
+ CREATE TABLE type_id2 (
+ typeid integer primary key autoincrement,
+ name1 VARCHAR DEFAULT NULL,
+ name2 varchar default null
+);
+insert into type_id2 (name1, name2)
+select * from pokemon_typetest3;
+
+create table pokemon_typelink2 as
+select imported_pokemon_data.pokedex_number, type_id2.typeid
+from imported_pokemon_data, type_id2
+where type_id2.name1 = imported_pokemon_data.type1
+and type_id2.name2 = imported_pokemon_data.type2;
+
+
+create table againstfinal2 as
+select distinct t2.typeid, t1.against_bug, t1.against_dark, t1.against_dragon, t1.against_electric, t1.against_fairy,
+  t1.against_fight, t1.against_fire, t1.against_flying, t1.against_ghost, t1.against_grass, t1.against_ground, t1.against_ice,
+  t1.against_normal, t1.against_poison, t1.against_psychic, t1.against_rock, t1.against_steel, t1.against_water
+FROM imported_pokemon_data AS t1, pokemon_typelink2 AS t2
+where t1.pokedex_number = t2.pokedex_number;
